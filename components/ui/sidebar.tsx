@@ -85,6 +85,14 @@ const SidebarProvider = React.forwardRef<
   }, [isMobile, setOpen, setOpenMobile, mounted])
 
   React.useEffect(() => {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(
+        new RegExp(`${SIDEBAR_COOKIE_NAME}=(true|false)`),
+      )
+      if (match) {
+        _setOpen(match[1] === "true")
+      }
+    }
     setMounted(true)
   }, [])
 

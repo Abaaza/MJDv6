@@ -119,7 +119,12 @@ export default function AdminSettingsPage() {
         const response = await fetch("/api/admin/settings")
         if (response.ok) {
           const data = await response.json()
-          setSettings({ ...settings, ...data })
+          setSettings({
+            ...settings,
+            ...data,
+            cohereApiKey: data.cohereApiKey === "***configured***" ? "" : data.cohereApiKey,
+            openaiApiKey: data.openaiApiKey === "***configured***" ? "" : data.openaiApiKey,
+          })
           return
         }
       } catch (error) {
@@ -163,7 +168,10 @@ export default function AdminSettingsPage() {
       }
 
       // Fallback to localStorage
-      localStorage.setItem("admin-settings", JSON.stringify(settings))
+      const localCopy = { ...settings }
+      if (localCopy.cohereApiKey === "***configured***") localCopy.cohereApiKey = ""
+      if (localCopy.openaiApiKey === "***configured***") localCopy.openaiApiKey = ""
+      localStorage.setItem("admin-settings", JSON.stringify(localCopy))
       toast({
         title: "Settings Saved",
         description: "Settings have been saved locally.",

@@ -54,7 +54,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Failed to parse file" }, { status: 400 })
     }
 
-    const inquiryDescriptions = parsedData.flatMap((sheet) => sheet.items.map((item) => item.description))
+    const inquiryDescriptions = parsedData.flatMap((sheet) =>
+      sheet.items
+        .filter((it) => it.description && it.description.trim().length > 0)
+        .map((it) => it.description.trim()),
+    )
 
     if (inquiryDescriptions.length === 0) {
       return NextResponse.json({ error: "No valid inquiry items found" }, { status: 400 })

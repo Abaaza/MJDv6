@@ -143,20 +143,20 @@ class MongoDBService {
   }> {
     console.log("💰 Getting price items from database with options:", options)
 
+    const {
+      search = "",
+      category = "",
+      subCategory = "",
+      minRate,
+      maxRate,
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = options
+
     try {
       await this.connect()
-
-      const {
-        search = "",
-        category = "",
-        subCategory = "",
-        minRate,
-        maxRate,
-        page = 1,
-        limit = 20,
-        sortBy = "createdAt",
-        sortOrder = "desc",
-      } = options
 
       // Build query
       const query: any = {}
@@ -237,7 +237,25 @@ class MongoDBService {
       }
     } catch (error) {
       console.error("❌ Error getting price items:", error)
-      throw error
+
+      // Fallback to sample data when database is unavailable
+      try {
+        const { samplePriceItems } = await import("./sample-price-items")
+        console.log("⚠️ Using sample price items due to DB error")
+        const start = (page - 1) * limit
+        const end = start + limit
+        return {
+          items: samplePriceItems.slice(start, end),
+          total: samplePriceItems.length,
+          page,
+          totalPages: Math.ceil(samplePriceItems.length / limit),
+          categories: Array.from(new Set(samplePriceItems.map((i) => i.category).filter(Boolean))).sort(),
+          subCategories: Array.from(new Set(samplePriceItems.map((i) => i.subCategory).filter(Boolean))).sort(),
+        }
+      } catch (fallbackError) {
+        console.error("❌ Failed to load fallback data:", fallbackError)
+        throw error
+      }
     }
   }
 
